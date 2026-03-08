@@ -66,12 +66,6 @@ Each folder represents a part of the IAM project, similar to how a real IT depar
 
 ---
 
-## Project Status
-
-Completed  
-Last updated: *[add date]*  
-
----
 
 ## License
 
