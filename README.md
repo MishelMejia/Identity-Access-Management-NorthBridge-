@@ -23,14 +23,16 @@ Everything here is based on common situations you would find in a growing compan
 
 Each folder represents a part of the IAM project, similar to how a real IT department would organize documentation and technical work.
 
-01-Project-Overview/        → Summary, scope, and architecture
-02-ActiveDirectory-Design/  → OU structure, RBAC model, groups and roles
-03-Security-Policies/       → GPOs, hardening, auditing setup
-04-Delegation-Model/        → Delegation for Helpdesk, HR, and Managers
-05-Identity-Lifecycle/      → Onboarding, offboarding, and role change processes
-06-Automation/              → PowerShell scripts and automated reports
-07-Logs-and-Auditing/       → Audit configuration and sample logs
-08-Documentation/           → SOPs, runbooks, glossary, diagrams
+| Folder | Description |
+|--------|-------------|
+| **01-Project-Overview/** | Summary, scope, and architecture diagram |
+| **02-ActiveDirectory-Design/** | OU structure, RBAC model, groups and roles |
+| **03-Security-Policies/** | GPOs, hardening, and auditing setup |
+| **04-Delegation-Model/** | Delegation for Helpdesk, HR, and Managers |
+| **05-Identity-Lifecycle/** | Onboarding, offboarding, and role change workflows |
+| **06-Automation/** | PowerShell scripts and automated reports |
+| **07-Logs-and-Auditing/** | Audit configuration and sample logs |
+| **08-Documentation/** | SOPs, runbooks, glossary, and diagrams |
 
 
 ---
