@@ -1,5 +1,5 @@
-# Active Directory Enterprise RBAC Environment
-### Identity & Access Management Simulation with PowerShell Automation
+# Active Directory Enterprise RBAC Environment with PowerShell Automation
+
 
 This project simulates a **real enterprise Active Directory environment** designed to demonstrate identity management, Role-Based Access Control (RBAC), group nesting strategies, and PowerShell automation.
 
