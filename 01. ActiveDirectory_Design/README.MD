@@ -187,16 +187,31 @@ This helps ensure that privileged accounts are clearly identified and properly m
 
 # 9. Creating Administrative Accounts
 
-Following security best practices, administrative accounts were created separately from standard user accounts.
 
-Example:
+Following enterprise security best practices, administrative accounts were created separately from standard user accounts.
 
-standard user → jsmith  
-administrative account → jsmith-admin  
+Instead of assigning administrative privileges directly to user accounts, **dedicated administrative identities were created based on operational roles**.
 
-Separating privileged accounts reduces the risk of credential compromise.
+Examples of administrative accounts include:
 
-![Admin Accounts](images/9.admin-accounts-powershell.png)
+- `adm.helpdesk01`
+- `adm.itadmin01`
+- `adm.network01`
+- `adm.security01`
+- `adm.sysadmin01`
+
+Each account represents a **specific administrative responsibility**, allowing organizations to separate privileges based on operational roles.
+
+This approach improves security by:
+
+- Reducing the risk of privilege escalation
+- Limiting the exposure of high-privilege credentials
+- Enforcing role-based administrative responsibilities
+- Supporting auditing and accountability
+
+Administrative accounts were stored in a dedicated Organizational Unit to isolate privileged identities from standard user accounts.
+
+![Administrative Accounts Structure](images/9.admin-accounts-powershell.png)
 
 ---
 
