@@ -284,7 +284,7 @@ RBAC nesting was tested using PowerShell.
 
 Example command:
 
-```powershell
+powershell
 Get-ADGroupMember GRP_Finance -Recursive
 
 The -Recursive parameter allows administrators to view users who belong to nested groups.
