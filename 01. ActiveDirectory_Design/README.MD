@@ -25,7 +25,6 @@ The simulated domain environment was built using the following infrastructure:
 
 Domain: northbridge.local  
 Domain Controller: Windows Server 2022  
-Client Machine: Windows 10  
 
 Active Directory was deployed as the central identity service, while PowerShell was used to automate the creation and management of directory objects.
 
