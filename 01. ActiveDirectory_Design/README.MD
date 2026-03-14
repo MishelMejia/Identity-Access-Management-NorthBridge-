@@ -1,65 +1,67 @@
-# Active Directory Enterprise RBAC Environment with PowerShell Automation
+# Active Directory Identity Management & RBAC Automation 
 
+This project simulates a small enterprise **Identity and Access Management (IAM)** environment built using **Active Directory Domain Services (AD DS)** and **PowerShell automation**.
 
-This project simulates a **real enterprise Active Directory environment** designed to demonstrate identity management, Role-Based Access Control (RBAC), group nesting strategies, and PowerShell automation.
+The objective of this lab was to design a structured directory environment while implementing **Role-Based Access Control (RBAC)** using security groups, nested group architecture, and automated user provisioning.
 
-The goal of this project was to understand how **identity, permissions, and access inheritance work in enterprise infrastructure environments**, while building a structured and automated Active Directory deployment.
+Instead of relying on manual configuration through the graphical interface, most of the infrastructure in this project was created and managed using **PowerShell scripts**, which reflects how identity infrastructure is typically administered in enterprise environments.
 
-The environment follows common enterprise best practices including:
+This project demonstrates practical knowledge of:
 
-- Structured Organizational Unit (OU) hierarchy
-- Role-Based Access Control (RBAC)
+- Active Directory administration
+- Identity and Access Management (IAM)
+- RBAC design and implementation
+- PowerShell automation
+- Organizational Unit architecture
 - Group nesting strategies
-- Automated user provisioning with PowerShell
-- Attribute-based identity management
-- Administrative account separation
+- Automated user provisioning
+- Infrastructure troubleshooting
 
 ---
 
-# Project Architecture
+# Environment Architecture
 
-The environment was deployed using a simulated domain:
+The simulated domain environment was built using the following infrastructure:
 
+Domain: northbridge.local  
+Domain Controller: Windows Server 2022  
+Client Machine: Windows 10  
 
-northbridge.local
+Active Directory was deployed as the central identity service, while PowerShell was used to automate the creation and management of directory objects.
 
-
-Infrastructure components include:
-
-- Windows Server 2022 Domain Controller
-- Active Directory Domain Services
-- PowerShell automation scripts
-- RBAC group architecture
-- Organizational Unit hierarchy
-- Automated user creation from CSV files
+Automation is important because large organizations often manage **thousands of users**, making manual administration inefficient and error-prone.
 
 ---
 
-# 1. Organizational Unit (OU) Design
+# 1. Organizational Unit Structure Design
 
-Before creating users or groups, the first step was designing a **scalable OU structure**.
+The first step in designing an Active Directory environment is creating a **clear Organizational Unit structure**.
 
-Separating objects into logical containers allows administrators to apply:
+Organizational Units are used to:
 
-- Group Policies
-- Delegation of administration
-- Security boundaries
-- Organizational identity management
+- Organize directory objects
+- Apply Group Policies
+- Delegate administrative permissions
+- Create logical security boundaries
 
-Root OU structure:
+A structured OU hierarchy improves maintainability and scalability.
+
+The root structure created for this lab includes:
 
 - Users
 - Computers
 - Groups
 - Admin
 
+This separation ensures that different object types can be managed independently.
+
 ![OU Root Structure](images/1.ou-root-structure.png)
 
 ---
 
-# 2. Department-Based User Structure
+# 2. Department-Based User Organization
 
-Users were organized by department to simulate a corporate structure.
+Users were organized by department to simulate a typical corporate environment.
 
 Departments created:
 
@@ -68,21 +70,35 @@ Departments created:
 - IT
 - Sales
 
-This structure allows department-level administration and easier policy management.
+Separating users into departmental OUs allows administrators to:
 
-![User Department OUs](images/2.ou-users-departments.png)
+- Apply department-specific policies
+- Delegate control to department administrators
+- Organize identities logically
+
+This design also simplifies identity lifecycle management.
+
+![User Departments](images/2.ou-users-departments.png)
 
 ---
 
-# 3. Computer Organization
+# 3. Computer Organizational Structure
 
-Computer objects were separated by device type:
+Computer objects were separated based on device type:
 
 - Workstations
 - Laptops
 - Servers
 
-This allows targeted **Group Policy deployment and device lifecycle management**.
+This design is important because different types of devices often require different configurations.
+
+For example:
+
+- Workstations may require standard user policies
+- Laptops may require additional security policies
+- Servers require stricter security controls
+
+Organizing computers this way allows administrators to apply **targeted Group Policies**.
 
 ![Computer OUs](images/3.ou-computers-types.png)
 
@@ -90,84 +106,94 @@ This allows targeted **Group Policy deployment and device lifecycle management**
 
 # 4. Creating Department Security Groups
 
-Department groups represent **department-wide access permissions**.
+Department groups represent the **first layer of RBAC access control**.
 
-Examples:
+Examples include:
 
 - GRP_Finance
 - GRP_HR
 - GRP_IT
 - GRP_Sales
 
-These groups serve as the first level of RBAC access control.
+These groups represent **department-level permissions** and serve as the parent groups in the RBAC model.
+
+In this project, these groups were created using **PowerShell scripts**, allowing the process to be automated and repeatable.
 
 ![Department Groups](images/4.groups-department-powershell.png)
 
 ---
 
-# 5. Creating Role-Based Groups (RBAC Level 2)
+# 5. Creating Role-Based Groups
 
-Role groups represent **specific roles inside each department**.
+Role groups represent specific job functions within each department.
 
-Examples:
+Examples include:
 
 - GRP_Finance_Manager
 - GRP_Finance_Analyst
 - GRP_IT_Technician
 
-Users are assigned to **role groups instead of department groups directly**.
+Instead of assigning permissions directly to users, users are assigned to **role groups**, which are then nested inside department groups.
+
+This approach improves scalability and simplifies access management.
 
 ![Role Groups](images/5.groups-role-powershell.png)
 
 ---
 
-# 6. Preparing the User CSV
+# 6. Preparing the User CSV File
 
-User data was prepared in a CSV file to automate account creation.
+To automate user creation, a CSV file was prepared containing structured identity data.
 
-The CSV contains identity attributes such as:
+The CSV file includes attributes such as:
 
 - First Name
 - Last Name
 - Department
-- Job Title
+- Title
 - Manager
 - EmployeeID
+
+Using a CSV allows administrators to create many users simultaneously through automation.
 
 ![User CSV](images/6.userscsvlist.png)
 
 ---
 
-# 7. Automated User Creation with PowerShell
+# 7. Automated User Provisioning with PowerShell
 
-Users were automatically created using PowerShell and imported from the CSV file.
+Users were created automatically using a PowerShell script that reads the CSV file and generates user accounts.
 
-This approach reflects real enterprise onboarding processes where **automation is required to provision large numbers of users efficiently**.
+Automation provides several benefits:
+
+- Reduces manual errors
+- Speeds up user provisioning
+- Allows repeatable infrastructure deployment
+
+This approach reflects real enterprise onboarding workflows.
 
 ![User Creation Script](images/7.users-in-departmentpowershell.png)
 
 ---
 
-# 8. Defining Administrative Roles
+# 8. Administrative Role Definition
 
-Administrative roles were documented and structured separately from standard users.
+Administrative roles were documented separately to define privileged access levels.
 
-This supports governance and reduces privilege exposure.
+This helps ensure that privileged accounts are clearly identified and properly managed.
 
-![Admin Roles List](images/8.adminroleslist_csv.png)
+![Admin Roles](images/8.adminroleslist_csv.png)
 
 ---
 
 # 9. Creating Administrative Accounts
 
-Administrative accounts were created separately following security best practices.
+Following security best practices, administrative accounts were created separately from standard user accounts.
 
-Example structure:
+Example:
 
-
-username → standard account
-username-admin → administrative account
-
+standard user → jsmith  
+administrative account → jsmith-admin  
 
 Separating privileged accounts reduces the risk of credential compromise.
 
@@ -175,11 +201,11 @@ Separating privileged accounts reduces the risk of credential compromise.
 
 ---
 
-# 10. Validating Group Memberships
+# 10. Verifying Group Membership
 
 PowerShell was used to verify that users were assigned to the correct groups.
 
-This validation step ensures that RBAC policies are applied correctly.
+Verification steps are essential when deploying identity infrastructure to ensure that access policies are functioning correctly.
 
 ![Group Membership Validation](images/10.user-memberof-groupspowershell.png)
 
@@ -187,49 +213,57 @@ This validation step ensures that RBAC policies are applied correctly.
 
 # 11. Assigning Identity Attributes
 
-Additional identity attributes were assigned to users to simulate enterprise directory data.
+Additional attributes were assigned to users using PowerShell automation.
 
-Attributes included:
+Attributes assigned include:
 
 - Department
 - Title
 - Manager
 - EmployeeID
 
-These attributes are commonly used in identity governance and automation systems.
+These attributes are commonly used by enterprise identity systems for:
 
-![Attribute Assignment](images/11.assign-attributespowershell.png)
+- Identity governance
+- Access automation
+- Organizational reporting
+
+![Assigning Attributes](images/11.assign_attributespowershell.png)
 
 ---
 
 # 12. Automating Role Group Creation
 
-RBAC role groups were automatically created using PowerShell scripts.
+Role-based groups were created using PowerShell scripts.
 
-This reduces manual work and ensures consistency in group creation.
+Automating group creation ensures that:
 
-![RBAC Role Group Automation](images/12.rolesgroupcreationpowershell.png)
+- Naming conventions remain consistent
+- Deployment is repeatable
+- Human error is minimized
+
+![Role Group Creation](images/12.rolesgroupcreationpowershell.png)
 
 ---
 
 # 13. Assigning Users to Global Role Groups
 
-Users were assigned to broader role groups such as:
+Users were also assigned to broader global role groups such as:
 
 - GRP_Managers
 - GRP_Analysts
 
-This supports hierarchical access models.
+These groups represent organization-wide roles that may apply across multiple departments.
 
-![Global Role Assignment](images/13.addusersglobalgroup.png)
+![Global Group Assignment](images/13.addusersglobalgroup.png)
 
 ---
 
 # 14. Assigning Users to RBAC Role Groups
 
-Each user was assigned to their **RBAC role group**, rather than directly to department groups.
+Users were assigned to role groups rather than directly to department groups.
 
-This approach simplifies long-term access management.
+This allows role-based access to be managed independently from department membership.
 
 ![RBAC Role Assignment](images/14.addusersrolesrbac2.png)
 
@@ -237,115 +271,113 @@ This approach simplifies long-term access management.
 
 # 15. RBAC Group Nesting (Role → Department)
 
-Role groups were nested into department groups.
+Role groups were nested inside department groups.
 
 Example:
 
+GRP_Finance_Manager → GRP_Finance  
+GRP_Finance_Analyst → GRP_Finance  
 
-GRP_Finance_Manager → GRP_Finance
-GRP_Finance_Analyst → GRP_Finance
+This allows department permissions to be inherited through role membership.
 
-
-This allows department access to be inherited through role membership.
-
-![RBAC Nesting Department](images/15.nestingRBAC2-RBAC1.png)
+![RBAC Department Nesting](images/15.nestingRBAC2-RBAC1.png)
 
 ---
 
-# 16. RBAC Nesting with Global Groups
+# 16. RBAC Global Nesting
 
 Role groups were also nested into global role groups.
 
 Example:
 
-
 GRP_Finance_Manager → GRP_Managers
 
-
-This supports enterprise-wide privilege structures.
+This allows permissions to propagate through multiple levels of the RBAC hierarchy.
 
 ![RBAC Global Nesting](images/16.nestingRBAC2-GLOBAL.png)
 
 ---
 
-# 17. Adding Users Through Nested Groups
+# 17. Validating Nested Group Membership
 
-Users inherit permissions through nested group relationships.
+Users inherit permissions through nested groups.
 
-This confirms the RBAC model works correctly.
+PowerShell was used to confirm that the nesting structure worked correctly.
 
-![User Nested Membership](images/17.Adduser_to_groupnesting.png)
+![Nested Membership](images/17.Adduser_to_groupnesting.png)
 
 ---
 
-# 18. Testing RBAC Nesting
+---
 
-RBAC nesting was tested using PowerShell.
+## 18. Testing RBAC Nesting
 
-Example command:
+RBAC nesting was tested using PowerShell to confirm that users inherit permissions through nested security groups.
 
-powershell
-Get-ADGroupMember GRP_Finance -Recursive
+Example command used for validation:
 
-The -Recursive parameter allows administrators to view users who belong to nested groups.
+`Get-ADGroupMember GRP_Finance -Recursive`
 
-19. Testing Global Manager Group
+The `-Recursive` parameter allows administrators to display users that belong to nested groups and confirms that the RBAC hierarchy is functioning correctly.
 
-Additional validation confirmed that manager-level permissions worked correctly through nested groups.
+![Finance Group Nesting Test](images/18.testnesting_GRPFINANCE.png)
 
-Real-World Issue Encountered
+---
 
-During testing, an issue appeared when users were moved between Organizational Units.
+## 19. Testing Manager Group Access
 
-Active Directory disabled permission inheritance, which caused RBAC behavior to break.
+Additional validation was performed on the **Managers global group** to confirm that permissions propagate correctly through the RBAC hierarchy.
 
-Symptoms included:
+This ensures that users assigned to role groups inherit the appropriate department and global permissions.
 
-Missing inherited permissions
+![Manager Group Nesting Test](images/19.testnesting_GRPMANAGER.png)
 
-Unexpected group behavior
+---
 
-Incorrect access validation
+## Real-World Issue Encountered
+
+During testing, an issue appeared when users were moved between **Organizational Units (OUs)**.
+
+Active Directory automatically disabled **permission inheritance**, which caused RBAC behavior to break.
+
+### Symptoms observed
+
+- Missing inherited permissions  
+- Unexpected group membership results  
+- Incorrect access validation during RBAC testing  
+
+This situation can occur when directory objects are moved between containers with different security configurations.
+
+### Resolution
 
 The issue was resolved by re-enabling inheritance in the user security settings:
 
-User Properties
-→ Security
-→ Advanced
-→ Enable inheritance
+User Properties → Security → Advanced → Enable inheritance
 
 Once inheritance was restored, RBAC functionality returned to normal.
 
-Skills Demonstrated
+---
+
+## Skills Demonstrated
 
 This project demonstrates practical skills relevant to enterprise IT infrastructure and identity management roles:
 
-Active Directory administration
+- Active Directory administration  
+- RBAC architecture design  
+- PowerShell automation  
+- Identity and Access Management (IAM)  
+- Organizational Unit architecture  
+- Group nesting strategies  
+- Automated user provisioning  
+- Security best practices  
+- Infrastructure troubleshooting  
 
-RBAC architecture design
+---
 
-PowerShell automation
+## Technologies Used
 
-Identity and Access Management (IAM)
-
-Organizational Unit architecture
-
-Group nesting strategies
-
-Automated user provisioning
-
-Security best practices
-
-Infrastructure troubleshooting
-
-Technologies Used
-
-Windows Server 2022
-
-Active Directory Domain Services
-
-PowerShell
-
-CSV automation
-
-RBAC access model
+- Windows Server 2022  
+- Active Directory Domain Services  
+- PowerShell  
+- CSV-based automation  
+- RBAC access model
