@@ -312,11 +312,12 @@ This allows permissions to propagate through multiple levels of the RBAC hierarc
 
 ---
 
-# 17. Validating Nested Group Membership
+## 17. Validating Permission Inheritance Through Nested Groups
 
-Users inherit permissions through nested groups.
+To validate the RBAC design, a new user was created and assigned to the **GRP_Finance_Manager** role group.
 
-PowerShell was used to confirm that the nesting structure worked correctly.
+Because this role group is nested within higher-level permission groups, the user automatically inherits all permissions associated with those groups. This demonstrates how Role-Based Access Control simplifies permission management by assigning access through group membership rather than configuring permissions directly on individual user accounts.
+
 
 ![Nested Membership](images/17.Adduser_to_groupnesting.png)
 
@@ -348,29 +349,6 @@ This ensures that users assigned to role groups inherit the appropriate departme
 
 ---
 
-## Real-World Issue Encountered
-
-During testing, an issue appeared when users were moved between **Organizational Units (OUs)**.
-
-Active Directory automatically disabled **permission inheritance**, which caused RBAC behavior to break.
-
-### Symptoms observed
-
-- Missing inherited permissions  
-- Unexpected group membership results  
-- Incorrect access validation during RBAC testing  
-
-This situation can occur when directory objects are moved between containers with different security configurations.
-
-### Resolution
-
-The issue was resolved by re-enabling inheritance in the user security settings:
-
-User Properties → Security → Advanced → Enable inheritance
-
-Once inheritance was restored, RBAC functionality returned to normal.
-
----
 
 ## Skills Demonstrated
 
@@ -384,7 +362,6 @@ This project demonstrates practical skills relevant to enterprise IT infrastruct
 - Group nesting strategies  
 - Automated user provisioning  
 - Security best practices  
-- Infrastructure troubleshooting  
 
 ---
 
