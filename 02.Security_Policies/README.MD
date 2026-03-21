@@ -1,197 +1,166 @@
 # Active Directory Security Hardening Lab
-### Implementing a security baseline using Group Policy and PowerShell
 
-This project focuses on securing an Active Directory environment by applying a structured set of security policies using Group Policy Objects (GPOs) and PowerShell.
+## Project Overview
 
-The goal was not only to configure security settings, but to design them in a way that reflects how enterprise environments are managed.
+This project focuses on implementing a structured security baseline in an Active Directory environment using Group Policy and PowerShell.
 
----
-
-# Environment
-
-- Domain: `northbridge.local`
-- Domain Controller: Windows Server 2022
-- Client: Windows 11
+The objective was not just to configure settings, but to design them in a controlled and scalable way. Instead of applying changes directly to default configurations, policies were separated, scoped, and validated to reflect how enterprise environments are managed.
 
 ---
 
-# Security Policy Design
+## Objectives
 
-## Separation of GPOs
-
-Instead of modifying the Default Domain Policy, separate GPOs were created:
-
-- `GPO-Domain-Security`
-- `GPO-DC-Security`
-- `GPO-Workstation-Security`
-
-This approach improves control and reduces risk. Each layer of the environment can be managed independently, making troubleshooting and auditing more straightforward.
+- Implement a structured Active Directory security baseline  
+- Apply Group Policy in a controlled and scalable way  
+- Separate policies based on system roles (Domain, Domain Controllers, Workstations)  
+- Enforce modern security practices (disable legacy protocols, strengthen authentication)  
+- Use PowerShell to automate configuration  
+- Validate policy application and troubleshoot issues  
 
 ---
 
-# PowerShell-Based Implementation
+## Environment / Architecture
+
+- Domain: `northbridge.local`  
+- Domain Controller: Windows Server 2022  
+- Client Machine: Windows 11  
+
+Technologies used:
+
+- Active Directory Domain Services (AD DS)  
+- Group Policy Management  
+- PowerShell  
+
+This setup was chosen to simulate a small enterprise environment where policies are centrally managed and applied across different types of systems.
+
+---
+
+## Design Decisions
+
+### GPO Separation
+
+Separate GPOs were created instead of modifying the Default Domain Policy:
+
+- Domain Security  
+- Domain Controller Security  
+- Workstation Security  
+
+This reduces risk and makes it easier to manage and troubleshoot policies independently.
+
+---
+
+### OU-Based Targeting
+
+Policies were applied based on Organizational Units.
+
+This ensures that each type of system receives only the configurations relevant to it, avoiding unintended impact.
+
+---
+
+### PowerShell Automation
+
+PowerShell was used to create and manage policies.
+
+This allows repeatability, reduces manual errors, and reflects how configurations are handled in real environments.
+
+---
+
+## Implementation
+
+### 1. Load Required Modules
+
+PowerShell modules for Active Directory and Group Policy were loaded to enable automation and scripting.
 
 ![Modules Loaded](images/01-modules-loaded.png)
 
-All configurations were implemented using PowerShell.
+---
 
-This ensures:
-- Consistent deployment
-- Repeatability
-- Reduced manual errors
+### 2. Define Domain Paths
+
+Distinguished Names and OU paths were defined to ensure that all objects and policies are created in the correct locations.
+
+![Domain Paths](images/02-domain-paths.png)
 
 ---
 
-# GPO Creation and Linking
+### 3. Create Security GPOs
+
+GPOs were created to separate security controls by scope, allowing each layer of the environment to be managed independently.
 
 ![GPO Created](images/03.00-gpo-created.png)
 
-Each GPO targets a specific scope:
-
-- Domain → global security settings  
-- Domain Controllers → stricter controls  
-- Workstations → endpoint security  
-
-![GPO Links](images/04-gpo-links.png)
-
-Correct OU targeting is critical. Policies only apply as expected when the structure is properly designed.
-
 ---
 
-# GPO Linking Validation
+### 4. Validate GPO Linking
 
-An incorrect link was initially applied:
+An incorrect GPO link was initially applied, which prevented policies from working as expected.
 
 ![GPO Link Issue](images/03.01-gpo-linkmistakeworkstation.png)
 
-After correcting the target:
+After correcting the target, the policy applied properly:
 
-![GPO Link Fixed](images/03.02-workstations-gpo-linkedsolved.png)
+![GPO Link Fixed](images/03.02-workstations-gpo-linkedsovled.png)
 
-This highlights the importance of validating GPO scope and inheritance after deployment.
-
----
-
-# Password Policy Configuration
-
-![Password Policy](images/05-domainpassword-policy.png)
-
-The domain password policy enforces baseline requirements such as:
-
-- Minimum length  
-- Password history  
-- Account lockout  
-
-However, this level of control is not sufficient for privileged accounts.
+This highlights the importance of verifying scope after configuration.
 
 ---
 
-# Fine-Grained Password Policy (FGPP)
+### 5. Link GPOs to Correct Targets
+
+GPOs were linked to the appropriate OUs to ensure correct application across Domain, Domain Controllers, and Workstations.
+
+![GPO Links](images/04-gpo-links.png)
+
+---
+
+### 6. Configure Domain Password Policy
+
+A domain-level password policy was configured to enforce baseline security requirements such as password length, history, and lockout settings.
+
+![Domain Password Policy](images/05-domainpassword-policy.png)
+
+---
+
+### 7. Create Fine-Grained Password Policy
+
+A stricter password policy was created specifically for privileged accounts.
+
+This addresses the limitation of domain policies applying equally to all users.
 
 ![FGPP Created](images/06-fgpp-created.png)
 
+---
+
+### 8. Apply FGPP to Administrative Accounts
+
+The stricter policy was applied to privileged users to ensure stronger authentication controls for high-risk accounts.
+
 ![FGPP Applied](images/07-fgpp-applied.png)
-
-A stricter password policy was applied to administrative accounts.
-
-This allows:
-- Different security requirements for different groups  
-- Stronger protection for privileged identities  
-- Better alignment with least privilege principles  
 
 ---
 
-# Disabling SMBv1
+### 9. Disable SMBv1
+
+SMBv1 was disabled to remove a legacy protocol with known vulnerabilities, reducing the attack surface.
 
 ![SMB Disabled](images/08-smb-disabled.png)
 
-SMBv1 was disabled due to known vulnerabilities and its association with major exploits such as WannaCry.
+---
 
-Removing legacy protocols reduces the attack surface significantly.
+### 10. Enable Firewall via GPO
+
+Firewall settings were enforced centrally using Group Policy to ensure consistency across all systems.
+
+![Firewall Enabled](images/09-firewall-enabled.png)
 
 ---
 
-# LDAP Signing
+## Validation / Testing
 
-LDAP signing was enforced to secure authentication traffic.
-
-Without it:
-- Credentials can be intercepted  
-- Authentication can be manipulated  
-
-Enabling it ensures integrity and reduces the risk of man-in-the-middle attacks.
-
----
-
-# PowerShell v2 Removal
-
-PowerShell v2 was disabled because it lacks modern security controls and logging capabilities.
-
-Keeping only supported versions improves visibility and reduces exposure to known attack techniques.
-
----
-
-# Firewall Configuration via GPO
-
-Firewall settings were applied centrally using Group Policy.
-
-Benefits include:
-- Consistent configuration across all systems  
-- No dependency on local settings  
-- Easier enforcement and management  
-
-![Firewall Config](images/09-firewall-enabled.png)
-
----
-
-# Administrative Account Strategy
-
-Administrative accounts were separated from standard user accounts.
-
-This reduces risk by:
-- Limiting exposure of privileged credentials  
-- Preventing misuse during daily activities  
-
-High-privilege accounts should only be used when required.
-
----
-
-# Auditing Configuration
-
-Audit policies were configured to track:
-
-- Logon events  
-- Account changes  
-- Privilege usage  
-
-This enables detection of suspicious activity and supports incident investigation.
-
----
-
-# Validation and Testing
-
-All configurations were verified after deployment.
+After applying the configurations, policies were verified using system tools and PowerShell:
 
 ```powershell
 gpresult /r
 Get-ADFineGrainedPasswordPolicy
 Get-NetFirewallProfile
 Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol
-
----
-
-# What I Learned
-
-Working on this project helped me move from just configuring Active Directory to actually understanding how security should be designed.
-
-Some of the main takeaways:
-
-- Separating GPOs by scope (Domain, DCs, Workstations) makes the environment easier to manage and reduces the impact of misconfigurations  
-- The Default Domain Policy should remain minimal to avoid unnecessary risk and complexity  
-- PowerShell is essential for consistency and scalability, especially when applying multiple configurations  
-- Not all accounts should follow the same security policies — privileged accounts require stricter controls  
-- Disabling legacy components like SMBv1 and PowerShell v2 is critical to reduce exposure to known attack vectors  
-- Security is not only about applying configurations, but also about validating that they are actually enforced  
-- Small mistakes, such as incorrect GPO linking, can silently affect the entire environment if not properly tested  
-
-Overall, this project reinforced the importance of combining **structure, automation, and validation** when working with identity infrastructure.
