@@ -140,6 +140,8 @@ Benefits include:
 - No dependency on local settings  
 - Easier enforcement and management  
 
+![Firewall Config](images/09-firewall-enabled.png)
+
 ---
 
 # Administrative Account Strategy
