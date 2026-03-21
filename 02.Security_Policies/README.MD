@@ -99,7 +99,7 @@ An incorrect GPO link was initially applied, which prevented policies from worki
 
 After correcting the target, the policy applied properly:
 
-![GPO Link Fixed](images/03.02-workstations-gpo-linkedsovled.png)
+![GPO Link Fixed](images/03.02-workstations-gpo-linkedsolved.png)
 
 This highlights the importance of verifying scope after configuration.
 
@@ -159,8 +159,46 @@ Firewall settings were enforced centrally using Group Policy to ensure consisten
 
 After applying the configurations, policies were verified using system tools and PowerShell:
 
-```powershell
+
 gpresult /r
 Get-ADFineGrainedPasswordPolicy
 Get-NetFirewallProfile
 Get-WindowsOptionalFeature -Online -FeatureName SMB1Protocol
+
+Validation ensures that policies are not only configured, but actually enforced.
+
+## Key Concepts Applied
+Group Policy Management
+Identity and Access Management (IAM)
+Role-Based Access Control (RBAC)
+Least Privilege Principle
+Security Hardening
+
+## What I Learned
+
+This project made it clear that security in Active Directory depends more on structure than individual configurations.
+
+Separating policies by scope improved visibility and control. It also highlighted how easy it is for small mistakes, such as incorrect GPO linking, to affect the environment without obvious errors.
+
+I also gained a better understanding of how to apply different security levels depending on the type of account, especially for administrative users.
+
+## Real-World Relevance
+
+This type of configuration is commonly used in enterprise environments where centralized control and consistent security are required.
+
+System administrators rely on Group Policy to enforce standards, reduce configuration drift, and manage large environments efficiently.
+
+## Skills Demonstrated
+Active Directory administration
+Group Policy configuration
+PowerShell automation
+Troubleshooting GPO issues
+Security hardening
+Technologies Used
+Windows Server 2022
+Windows 11
+Active Directory Domain Services
+Group Policy Management
+PowerShell
+
+
