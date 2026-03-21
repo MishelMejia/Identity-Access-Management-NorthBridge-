@@ -1,0 +1,148 @@
+# Active Directory Security Hardening (Implementation Guide)
+
+This guide documents the step-by-step implementation of security policies in the `northbridge.local` environment using PowerShell and Group Policy.
+
+---
+
+## 1. Load Required PowerShell Modules
+
+Before applying any configuration, load the necessary modules:
+
+```powershell
+Import-Module ActiveDirectory
+Import-Module GroupPolicy
+
+Get-Module ActiveDirectory, GroupPolicy
+
+These modules allow management of Active Directory objects and Group Policies directly from PowerShell.
+
+2. Identify Domain Paths
+
+Retrieve domain and OU paths to correctly scope GPOs:
+
+$domainDN = (Get-ADDomain).DistinguishedName
+$dcOU = "OU=Domain Controllers,$domainDN"
+$workstationsOU = "OU=Workstations,$domainDN"
+
+$domainDN
+$dcOU
+$workstationsOU
+
+Defining these paths ensures that policies are applied to the correct targets.
+
+3. Create Security GPOs
+
+Create separate GPOs instead of modifying the Default Domain Policy:
+
+New-GPO -Name "GPO-Domain-Security"
+New-GPO -Name "GPO-DC-Security"
+New-GPO -Name "GPO-Workstation-Security"
+
+Get-GPO -All | Where-Object DisplayName -like "GPO-*"
+
+Using dedicated GPOs improves control and avoids unintended changes to default configurations.
+
+4. Link GPOs
+
+Link each GPO to the appropriate scope:
+
+New-GPLink -Name "GPO-Domain-Security" -Target $domainDN
+New-GPLink -Name "GPO-DC-Security" -Target $dcOU
+New-GPLink -Name "GPO-Workstation-Security" -Target $workstationsOU
+
+Get-GPInheritance -Target $domainDN
+
+Correct linking is essential. If a GPO is linked to the wrong OU, it will not apply as expected.
+
+5. Configure Domain Password Policy
+
+Apply a strong baseline password policy:
+
+Set-ADDefaultDomainPasswordPolicy `
+  -Identity $domainDN `
+  -MinPasswordLength 14 `
+  -PasswordHistoryCount 24 `
+  -MaxPasswordAge (New-TimeSpan -Days 60) `
+  -MinPasswordAge (New-TimeSpan -Days 1) `
+  -ComplexityEnabled $true `
+  -LockoutThreshold 5 `
+  -LockoutDuration (New-TimeSpan -Minutes 30) `
+  -LockoutObservationWindow (New-TimeSpan -Minutes 30)
+
+Get-ADDefaultDomainPasswordPolicy
+
+This reduces the risk of weak or reused passwords across the domain.
+
+6. Create Fine-Grained Password Policy (FGPP)
+
+Create a stricter policy for privileged accounts:
+
+New-ADFineGrainedPasswordPolicy `
+  -Name "FGPP-Admins-Strict" `
+  -Precedence 1 `
+  -MinPasswordLength 20 `
+  -PasswordHistoryCount 24 `
+  -MaxPasswordAge (New-TimeSpan -Days 30) `
+  -MinPasswordAge (New-TimeSpan -Days 1) `
+  -ComplexityEnabled $true `
+  -LockoutThreshold 3 `
+  -LockoutDuration (New-TimeSpan -Minutes 30) `
+  -LockoutObservationWindow (New-TimeSpan -Minutes 30)
+
+Get-ADFineGrainedPasswordPolicy
+
+Domain-wide policies apply equally to all users, so a Fine-Grained Policy is necessary to protect high-privilege accounts with stricter requirements.
+
+7. Apply FGPP to Domain Admins
+
+Assign the stricter policy to the privileged group:
+
+Add-ADFineGrainedPasswordPolicySubject `
+  -Identity "FGPP-Admins-Strict" `
+  -Subjects "Domain Admins"
+
+Get-ADFineGrainedPasswordPolicySubject `
+  -Identity "FGPP-Admins-Strict"
+
+This ensures that sensitive accounts are better protected against brute force or credential attacks.
+
+8. Disable SMBv1
+
+Disable SMBv1 due to known vulnerabilities:
+
+Set-GPRegistryValue -Name "GPO-Workstation-Security" `
+  -Key "HKLM\SYSTEM\CurrentControlSet\Services\mrxsmb10" `
+  -ValueName "Start" `
+  -Type DWord `
+  -Value 4
+
+Set-GPRegistryValue -Name "GPO-DC-Security" `
+  -Key "HKLM\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" `
+  -ValueName "SMB1" `
+  -Type DWord `
+  -Value 0
+
+SMBv1 is deprecated and commonly exploited, so disabling it reduces the attack surface.
+
+9. Enable Windows Firewall
+
+Enforce firewall configuration via GPO:
+
+Set-GPRegistryValue -Name "GPO-Workstation-Security" `
+  -Key "HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\DomainProfile" `
+  -ValueName "EnableFirewall" `
+  -Type DWord `
+  -Value 1
+
+Centralized firewall enforcement ensures consistent protection across all machines.
+
+10. Validate Policy Application
+
+Force policy update and verify applied GPOs:
+
+gpupdate /force
+gpresult /r
+
+This step confirms that the correct policies are applied and working as expected.
+
+
