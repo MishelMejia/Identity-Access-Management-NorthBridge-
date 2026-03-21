@@ -66,7 +66,7 @@ An incorrect link was initially applied:
 
 After correcting the target:
 
-![GPO Link Fixed](images/03.02-workstations-gpo-linkedsovled.png)
+![GPO Link Fixed](images/03.02-workstations-gpo-linkedsolved.png)
 
 This highlights the importance of validating GPO scope and inheritance after deployment.
 
