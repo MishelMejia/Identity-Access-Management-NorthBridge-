@@ -156,7 +156,7 @@ Delegated the ability for Helpdesk to create and manage computer objects in the 
 
 During implementation, the initial approach using validated write permissions did not behave as expected.
 
-![Initial Validation Issue](images/08-0-validatewerror.png)
+![Initial Validation Issue](images/08-0-validatewrerror.png)
 
 Because of this, the delegation model was adjusted to use direct permissions on computer objects instead of relying on validated writes.
 
