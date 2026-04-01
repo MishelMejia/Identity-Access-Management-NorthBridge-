@@ -152,11 +152,21 @@ Allowed Helpdesk to update operational attributes like phone and description.
 
 ### 8: Helpdesk Computer Join Delegation
 
-Delegated creation and deletion of computer objects in the Computers OU.
+Delegated the ability for Helpdesk to create and manage computer objects in the Computers OU.
 
-This was adjusted during the lab because some validated write permissions did not work as expected, so the delegation was applied directly using create/delete rights on computer objects.
+During implementation, the initial approach using validated write permissions did not behave as expected.
 
-![Join Computers](images/08-helpdesk-join-computers-delegation.png)
+![Initial Validation Issue](images/08-0-validatewerror.png)
+
+Because of this, the delegation model was adjusted to use direct permissions on computer objects instead of relying on validated writes.
+
+The delegation was then applied using create/delete rights on computer objects within the OU.
+
+![Join Computers Delegation](images/08-1-helpdesk-join-computers-delegation.png)
+
+Finally, permissions were verified using filtered output to confirm that the delegation was correctly applied.
+
+![Filtered Delegation Validation](images/08-2-helpdesk-join-computers-delegation-filter.png)
 
 ---
 
@@ -270,14 +280,18 @@ This helped confirm that permissions were partially correct and required careful
 
 ### Manager Read-Only Validation
 
-Tested reading:
+Managers were able to read:
 
 - direct reports  
 - department structure  
 
-Attempted modifications failed, confirming read-only behavior.
-
 ![Manager Read](images/21-validation-manager-readonly.png)
+
+An additional validation was performed attempting to modify user attributes, which resulted in an access denied error.
+
+This confirmed that the role is properly restricted to read-only access.
+
+![Manager Unauthorized Attempt](images/21-01-validation-manager-unauth-readonly.png)
 
 ---
 
