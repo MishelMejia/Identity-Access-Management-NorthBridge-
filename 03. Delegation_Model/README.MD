@@ -149,6 +149,61 @@ Allowed Helpdesk to update operational attributes like phone and description.
 ![Attributes](images/07-helpdesk-contact-attributes-delegation.png)
 
 ---
+---
+
+### 8: Helpdesk — Join Computers Delegation
+
+During the delegation process, an initial attempt was made to assign validated write permissions for DNS and Service Principal Name (SPN) attributes using `dsacls`.
+
+![Validation Error](images/08-0-validatewrerror.png)
+
+This resulted in an error indicating that these attributes require **Write Self (WS)** permissions, which cannot be assigned using standard control access (`CA`) entries.
+
+Instead of forcing a low-level attribute delegation, the approach was adjusted to follow a more practical and enterprise-aligned model.
+
+The Helpdesk group was granted permissions at the object level, allowing them to manage computer objects directly within the OU.
+
+![Delegation Applied](images/08-1-helpdesk-join-computers-delegation.png)
+
+The delegation grants the following capabilities:
+
+- Create computer objects in the domain  
+- Delete computer objects when needed  
+
+To confirm that the delegation was correctly applied, the permissions were validated using `dsacls` filtering.
+
+![Delegation Validation](images/08-2-helpdesk-join-computers-delegation-filter.png)
+
+The output confirms that the Helpdesk delegation group has:
+
+- `CREATE CHILD` (CC) — ability to create computer objects  
+- `DELETE CHILD` (DC) — ability to remove computer objects  
+
+This ensures that Helpdesk users can join machines to the domain without requiring Domain Admin privileges.
+
+---
+
+### 9: Helpdesk — Read Login Attributes Delegation
+
+Helpdesk often needs visibility into user login-related attributes for troubleshooting purposes.
+
+Instead of granting full access, read-only permissions were delegated for specific attributes:
+
+- `pwdLastSet`  
+- `lastLogon`  
+- `accountExpires`  
+
+![Login Attributes Delegation](images/09-helpdesk-read-login-attributes.png)
+
+This allows Helpdesk to:
+
+- verify when a password was last changed  
+- check last logon activity  
+- review account expiration status  
+
+All without modifying any user data.
+
+The permissions were scoped at the OU level to ensure visibility is controlled and limited only to relevant user objects.
 
 ### 10:Helpdesk — Join Computers Delegation
 
