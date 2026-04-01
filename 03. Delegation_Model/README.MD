@@ -204,6 +204,7 @@ This allows Helpdesk to:
 All without modifying any user data.
 
 The permissions were scoped at the OU level to ensure visibility is controlled and limited only to relevant user objects.
+
 ---
 
 ### 10: Helpdesk Move Users
