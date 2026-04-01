@@ -204,47 +204,6 @@ This allows Helpdesk to:
 All without modifying any user data.
 
 The permissions were scoped at the OU level to ensure visibility is controlled and limited only to relevant user objects.
-
-### 10:Helpdesk — Join Computers Delegation
-
-During the delegation process, an initial attempt was made to assign validated write permissions for DNS and Service Principal Name (SPN) attributes using `dsacls`.
-
-![Validation Error](images/08-0-validatewrerror.png)
-
-This resulted in an error indicating that these attributes require **Write Self (WS)** permissions, which cannot be assigned using standard control access (`CA`) entries.
-
-Instead of forcing a low-level attribute delegation, the approach was adjusted to follow a more practical and enterprise-aligned model.
-
-The Helpdesk group was granted permissions at the object level, allowing them to manage computer objects directly within the OU.
-
-![Delegation Applied](images/08-1-helpdesk-join-computers-delegation.png)
-
-The delegation grants the following capabilities:
-
-- Create computer objects in the domain  
-- Delete computer objects when needed  
-
-This aligns with how Helpdesk operations typically work in real environments, where the focus is on managing objects rather than modifying internal attributes.
-
-To confirm that the delegation was correctly applied, the permissions were validated using `dsacls` filtering.
-
-![Delegation Validation](images/08-2-helpdesk-join-computers-delegation-filter.png)
-
-The output confirms that the Helpdesk delegation group has:
-
-- `CREATE CHILD` (CC) — ability to create computer objects  
-- `DELETE CHILD` (DC) — ability to remove computer objects  
-
-This ensures that Helpdesk users can successfully join machines to the domain without requiring Domain Admin privileges, while still keeping control scoped and secure.
-
----
-
-### 9: Helpdesk Read Login Attributes
-
-Allowed read-only access to attributes used for troubleshooting login issues.
-
-![Read Login](images/09-helpdesk-read-login-attributes.png)
-
 ---
 
 ### 10: Helpdesk Move Users
