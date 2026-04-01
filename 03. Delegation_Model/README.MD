@@ -150,23 +150,37 @@ Allowed Helpdesk to update operational attributes like phone and description.
 
 ---
 
-### 8: Helpdesk Computer Join Delegation
+### 10:Helpdesk — Join Computers Delegation
 
-Delegated the ability for Helpdesk to create and manage computer objects in the Computers OU.
+During the delegation process, an initial attempt was made to assign validated write permissions for DNS and Service Principal Name (SPN) attributes using `dsacls`.
 
-During implementation, the initial approach using validated write permissions did not behave as expected.
+![Validation Error](images/08-0-validatewrerror.png)
 
-![Initial Validation Issue](images/08-0-validatewrerror.png)
+This resulted in an error indicating that these attributes require **Write Self (WS)** permissions, which cannot be assigned using standard control access (`CA`) entries.
 
-Because of this, the delegation model was adjusted to use direct permissions on computer objects instead of relying on validated writes.
+Instead of forcing a low-level attribute delegation, the approach was adjusted to follow a more practical and enterprise-aligned model.
 
-The delegation was then applied using create/delete rights on computer objects within the OU.
+The Helpdesk group was granted permissions at the object level, allowing them to manage computer objects directly within the OU.
 
-![Join Computers Delegation](images/08-1-helpdesk-join-computers-delegation.png)
+![Delegation Applied](images/08-1-helpdesk-join-computers-delegation.png)
 
-Finally, permissions were verified using filtered output to confirm that the delegation was correctly applied.
+The delegation grants the following capabilities:
 
-![Filtered Delegation Validation](images/08-2-helpdesk-join-computers-delegation-filter.png)
+- Create computer objects in the domain  
+- Delete computer objects when needed  
+
+This aligns with how Helpdesk operations typically work in real environments, where the focus is on managing objects rather than modifying internal attributes.
+
+To confirm that the delegation was correctly applied, the permissions were validated using `dsacls` filtering.
+
+![Delegation Validation](images/08-2-helpdesk-join-computers-delegation-filter.png)
+
+The output confirms that the Helpdesk delegation group has:
+
+- `CREATE CHILD` (CC) — ability to create computer objects  
+- `DELETE CHILD` (DC) — ability to remove computer objects  
+
+This ensures that Helpdesk users can successfully join machines to the domain without requiring Domain Admin privileges, while still keeping control scoped and secure.
 
 ---
 
