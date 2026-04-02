@@ -302,7 +302,7 @@ Validated:
 During testing, creating users sometimes returned **“Access Denied”** but the user was still created.  
 This helped confirm that permissions were partially correct and required careful validation.
 
-![HR Success](images/19-validation-hr-success.png)  
+![HR Success](images/19-validation-hrcreateus-success.png)  
 ![HR Denied](images/20-validation-hr-denied.png)
 
 ---
