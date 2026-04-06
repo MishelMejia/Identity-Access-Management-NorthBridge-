@@ -1,0 +1,283 @@
+# 03. Delegation_Model — Implementation Tutorial
+
+## Overview
+
+This tutorial explains how to implement the Delegation Model used in the Northbridge Active Directory lab.
+
+The goal is to simulate a real enterprise scenario where:
+- Helpdesk handles daily support tasks
+- HR manages identity lifecycle
+- Managers have visibility but no control
+
+Everything is implemented using security groups, OU-level delegation, PowerShell, dsacls, and validated from real user accounts.
+
+---
+
+## Environment
+
+- Domain: northbridge.local
+- Domain Controller: Windows Server 2022
+- Client: Windows 11
+- Tools: PowerShell, RSAT, ActiveDirectory module, dsacls
+
+---
+
+## Step 1 — Verify Existing Environment
+
+Before starting, confirm the environment is working correctly.
+
+Run:
+
+Import-Module ActiveDirectory  
+Get-ADDomain  
+
+Validate OUs:
+
+Get-ADOrganizationalUnit -Filter * | Select Name,DistinguishedName | Sort Name  
+
+Validate users:
+
+Get-ADUser -Filter * -SearchBase "OU=1.NB_Users,DC=northbridge,DC=local" -Properties Department,Title,Manager | Select SamAccountName,Department,Title,Manager | Sort Department  
+
+Image: images/01-ad-current-structure.png
+
+---
+
+## Step 2 — Create Delegation Groups OU
+
+New-ADOrganizationalUnit -Name "Delegation_Groups" -Path "OU=5.NB_Groups,DC=northbridge,DC=local"  
+
+Image: images/02-delegation-groups-ou.png
+
+---
+
+## Step 3 — Create Delegation Groups
+
+$path = "OU=Delegation_Groups,OU=5.NB_Groups,DC=northbridge,DC=local"  
+
+New-ADGroup -Name "DLG_Helpdesk_Reset_Users" -GroupScope Global -GroupCategory Security -Path $path  
+New-ADGroup -Name "DLG_Helpdesk_Modify_ContactAttributes" -GroupScope Global -GroupCategory Security -Path $path  
+New-ADGroup -Name "DLG_Helpdesk_Read_LoginAttributes" -GroupScope Global -GroupCategory Security -Path $path  
+New-ADGroup -Name "DLG_Helpdesk_Join_Computers" -GroupScope Global -GroupCategory Security -Path $path  
+New-ADGroup -Name "DLG_Helpdesk_Move_Users" -GroupScope Global -GroupCategory Security -Path $path  
+New-ADGroup -Name "DLG_HR_Modify_Users" -GroupScope Global -GroupCategory Security -Path $path  
+New-ADGroup -Name "DLG_HR_Disable_Users" -GroupScope Global -GroupCategory Security -Path $path  
+New-ADGroup -Name "DLG_HR_CreateDelete_Users" -GroupScope Global -GroupCategory Security -Path $path  
+New-ADGroup -Name "DLG_HR_Move_DisabledUsers" -GroupScope Global -GroupCategory Security -Path $path  
+New-ADGroup -Name "DLG_Managers_Read_Departments" -GroupScope Global -GroupCategory Security -Path $path  
+New-ADGroup -Name "DLG_Managers_Read_GroupMembership" -GroupScope Global -GroupCategory Security -Path $path  
+
+Image: images/03-delegation-groups-created.png
+
+---
+
+## Step 4 — Add Members
+
+Helpdesk:
+
+Add-ADGroupMember "DLG_Helpdesk_Reset_Users" -Members "adm.helpdesk01","adm.helpdesk02"  
+Add-ADGroupMember "DLG_Helpdesk_Modify_ContactAttributes" -Members "adm.helpdesk01","adm.helpdesk02"  
+
+HR:
+
+Add-ADGroupMember "DLG_HR_Modify_Users" -Members "mlopez"  
+Add-ADGroupMember "DLG_HR_CreateDelete_Users" -Members "mlopez"  
+
+Managers:
+
+Add-ADGroupMember "DLG_Managers_Read_Departments" -Members "mlopez","asalazar","hvaldez"  
+
+Image: images/04-delegation-group-membership.png
+
+---
+
+## Step 5 — Naming Standard Validation
+
+Get-ADGroup -Filter 'Name -like "DLG_*"' | Select Name | Sort Name  
+
+Image: images/05-delegation-naming-standard.png
+
+---
+
+## Step 6 — Helpdesk Password Reset Delegation
+
+dsacls "OU=1.NB_Users,DC=northbridge,DC=local" /I:S /G "northbridge\DLG_Helpdesk_Reset_Users:CA;Reset Password"  
+
+Image: images/06-helpdesk-reset-password-delegation.png
+
+---
+
+## Step 7 — Helpdesk Contact Attributes
+
+dsacls "OU=1.NB_Users,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_Helpdesk_Modify_ContactAttributes:WP;telephoneNumber"  
+dsacls "OU=1.NB_Users,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_Helpdesk_Modify_ContactAttributes:WP;description"  
+
+Image: images/07-helpdesk-contact-attributes-delegation.png
+
+---
+
+## Step 8 — Helpdesk Join Computers Delegation
+
+Initial attempt (failed):
+
+dsacls "OU=2.NB_Computers,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_Helpdesk_Join_Computers:CA;Validated write to DNS host name"  
+dsacls "OU=2.NB_Computers,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_Helpdesk_Join_Computers:CA;Validated write to service principal name"  
+
+Image: images/08-0-validatewrerror.png  
+
+Correct approach:
+
+dsacls "OU=2.NB_Computers,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_Helpdesk_Join_Computers:CC;computer"  
+dsacls "OU=2.NB_Computers,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_Helpdesk_Join_Computers:DC;computer"  
+
+Validation:
+
+dsacls "OU=2.NB_Computers,DC=northbridge,DC=local" | Select-String "DLG_Helpdesk_Join_Computers" -Context 0,5  
+
+Images:  
+images/08-1-helpdesk-join-computers-delegation.png  
+images/08-2-helpdesk-join-computers-delegation-filter.png  
+
+---
+
+## Step 9 — Helpdesk Read Login Attributes
+
+dsacls "OU=1.NB_Users,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_Helpdesk_Read_LoginAttributes:RP;pwdLastSet"  
+dsacls "OU=1.NB_Users,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_Helpdesk_Read_LoginAttributes:RP;lastLogon"  
+
+Image: images/09-helpdesk-read-login-attributes.png
+
+---
+
+## Step 10 — Helpdesk Move Users
+
+dsacls "OU=1.NB_Users,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_Helpdesk_Move_Users:WP;distinguishedName"  
+
+Image: images/10-helpdesk-move-users-delegation.png
+
+---
+
+## Step 11 — HR Modify Users
+
+dsacls "OU=HR,OU=1.NB_Users,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_HR_Modify_Users:WP;title"  
+dsacls "OU=HR,OU=1.NB_Users,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_HR_Modify_Users:WP;department"  
+
+Image: images/11-hr-modify-users-delegation.png
+
+---
+
+## Step 12 — HR Disable Users
+
+dsacls "OU=HR,OU=1.NB_Users,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_HR_Disable_Users:WP;userAccountControl"  
+
+Image: images/12-hr-disable-users-delegation.png
+
+---
+
+## Step 13 — HR Create/Delete Users
+
+dsacls "OU=HR,OU=1.NB_Users,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_HR_CreateDelete_Users:CC;user"  
+dsacls "OU=HR,OU=1.NB_Users,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_HR_CreateDelete_Users:DC;user"  
+
+Image: images/13-hr-create-delete-users.png
+
+---
+
+## Step 14 — Disabled Users OU
+
+New-ADOrganizationalUnit -Name "DisabledUsers" -Path "OU=1.NB_Users,DC=northbridge,DC=local"  
+
+dsacls "OU=DisabledUsers,OU=1.NB_Users,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_HR_Move_DisabledUsers:WP;distinguishedName"  
+
+Image: images/14-hr-move-disabled-users.png
+
+---
+
+## Step 15 — Manager Read Attributes
+
+dsacls "OU=1.NB_Users,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_Managers_Read_Departments:RP;title"  
+dsacls "OU=1.NB_Users,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_Managers_Read_Departments:RP;department"  
+
+Image: images/15-manager-read-attributes.png
+
+---
+
+## Step 16 — Manager Read Group Membership
+
+dsacls "OU=1.NB_Users,DC=northbridge,DC=local" /I:T /G "northbridge\DLG_Managers_Read_GroupMembership:RP;memberOf"  
+
+Image: images/16-manager-read-group-membership.png
+
+---
+
+## Step 17 — Helpdesk Validation
+
+Set-ADAccountPassword -Identity ccalderon -Reset -NewPassword (ConvertTo-SecureString "TempP@ssw0rd123!" -AsPlainText -Force)  
+
+Image: images/17-validation-helpdesk-success.png
+
+---
+
+## Step 18 — Helpdesk Denied
+
+Set-ADUser ccalderon -Department "Finance"  
+
+Image: images/18-validation-helpdesk-denied.png
+
+---
+
+## Step 19 — HR Validation
+
+Set-ADUser ccalderon -Title "Senior HR Assistant"  
+
+New-ADUser -Name "Test HR Joiner" -SamAccountName "test.hrjoiner" -UserPrincipalName "test.hrjoiner@northbridge.local" -Path "OU=HR,OU=1.NB_Users,DC=northbridge,DC=local"  
+
+Image: images/19-validation-hrcreateus-success.png
+
+---
+
+## Step 20 — HR Denied
+
+Set-ADAccountPassword -Identity ccalderon -Reset -NewPassword (ConvertTo-SecureString "Temp123!" -AsPlainText -Force)  
+
+Image: images/20-validation-hr-denied.png
+
+---
+
+## Step 21 — Manager Read Only
+
+Get-ADUser -Filter * -SearchBase "OU=1.NB_Users,DC=northbridge,DC=local" -Properties Manager,Department,Title | Select Name,Department,Title,Manager  
+
+Image: images/21-validation-manager-readonly.png  
+
+---
+
+## Step 23 — Audit Password Reset
+
+Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4724} -MaxEvents 10  
+
+Image: images/23-audit-password-reset-event.png
+
+---
+
+## Step 24 — Audit Disable
+
+Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4725} -MaxEvents 10  
+
+Image: images/24-audit-account-disabled-event.png
+
+---
+
+## Step 25 — Audit Changes
+
+Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4738} -MaxEvents 10  
+
+Image: images/25-audit-user-change-event.png
+
+---
+
+## Step 26 — Automation Readiness
+
+Get-ADUser -Filter * -SearchBase "OU=1.NB_Users,DC=northbridge,DC=local" -Properties Department,Title,Manager | Select SamAccountName,Department,Title,Manager | Sort Department  
+
+Image: images/26-automation-readiness-attributes.png
