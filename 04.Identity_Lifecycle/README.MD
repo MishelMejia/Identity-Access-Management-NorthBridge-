@@ -176,8 +176,6 @@ The user transitioned from HR to Finance, and attributes such as department, tit
 
 Updating identity data ensures that access reflects the new role and that reporting structures remain accurate.
 
-![Role Change](images/10-role-change-validation.png)
-
 ---
 
 ### 11: Updating Group Membership
@@ -185,8 +183,6 @@ Updating identity data ensures that access reflects the new role and that report
 Old access was removed and replaced with new group memberships aligned with the Finance role.
 
 This prevents privilege accumulation and ensures the user only has access relevant to their current responsibilities.
-
-![Group Update](images/10-role-change-validation.png)
 
 ---
 
@@ -196,7 +192,6 @@ The user was moved from the HR OU to the Finance OU.
 
 Keeping OU placement aligned with the user’s role ensures consistency and supports policy enforcement.
 
-![Role Change Validation](images/10-role-change-validation.png)
 
 ---
 
@@ -226,7 +221,6 @@ The account was disabled to immediately revoke access.
 
 Disabling accounts preserves data while ensuring that access is no longer possible.
 
-![Offboarding](images/14-offboarding-process.png)
 
 ---
 
@@ -236,7 +230,6 @@ All group memberships were removed.
 
 This ensures that no permissions remain assigned to the user after offboarding.
 
-![Offboarding](images/14-offboarding-process.png)
 
 ---
 
