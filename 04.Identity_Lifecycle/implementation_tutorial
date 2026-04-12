@@ -1,0 +1,244 @@
+# Identity Lifecycle Management — Implementation Tutorial (Northbridge Lab)
+
+## Overview
+
+This tutorial documents how to implement a complete identity lifecycle model in Active Directory using a structured approach.
+
+Instead of managing users manually, the process follows three key lifecycle stages:
+
+- Joiner (Onboarding)
+- Mover (Role Change)
+- Leaver (Offboarding)
+
+The focus is to maintain consistency between:
+
+- Identity attributes  
+- Group-based access  
+- Organizational Unit (OU) placement  
+
+This ensures a secure, auditable, and scalable environment.
+
+---
+
+## Environment
+
+- Domain: northbridge.local  
+- Platform: Windows Server 2022  
+- Service: Active Directory Domain Services (AD DS)  
+- Tools: PowerShell + RSAT  
+
+### Key OUs
+
+- OU=1.NB_Users
+- OU=HR,OU=1.NB_Users
+- OU=Finance,OU=1.NB_Users
+- OU=IT,OU=1.NB_Users
+- OU=Sales,OU=1.NB_Users
+- OU=DisabledUsers,OU=1.NB_Users
+- OU=5.NB_Groups
+
+---
+
+## 1. Validate Environment
+
+Confirm that the domain and OU structure are correctly configured.
+
+```powershell
+Import-Module ActiveDirectory
+
+Get-ADDomain
+
+Get-ADOrganizationalUnit -Filter * | Select Name, DistinguishedName
+
+This ensures the environment is ready before performing lifecycle operations.
+
+2. Review Existing Users
+
+Inspect current users to understand baseline identity attributes.
+
+Get-ADUser -Filter * `
+-SearchBase "OU=HR,OU=1.NB_Users,DC=northbridge,DC=local" `
+-Properties Department,Title,Manager |
+Select Name,Department,Title,Manager
+
+This step helps identify inconsistencies before making changes.
+
+3. Create DisabledUsers OU
+
+Create a dedicated OU for inactive accounts.
+
+New-ADOrganizationalUnit `
+-Name "DisabledUsers" `
+-Path "OU=1.NB_Users,DC=northbridge,DC=local"
+
+This keeps offboarded accounts isolated and easier to manage.
+
+4. Review RBAC Groups
+
+Verify that access is managed through groups.
+
+Get-ADGroup -Filter * `
+-SearchBase "OU=5.NB_Groups,DC=northbridge,DC=local" |
+Select Name
+
+This confirms the RBAC structure is ready.
+
+JOINER — ONBOARDING
+5. Create New User
+New-ADUser `
+-Name "Test HR Joiner 01" `
+-SamAccountName "test.hrjoiner01" `
+-UserPrincipalName "test.hrjoiner01@northbridge.local" `
+-Path "OU=HR,OU=1.NB_Users,DC=northbridge,DC=local" `
+-AccountPassword (ConvertTo-SecureString "TempP@ssw0rd123!" -AsPlainText -Force) `
+-Enabled $true
+
+Creates a new user in the HR department.
+
+6. Assign Attributes
+Set-ADUser test.hrjoiner01 -Department "HR"
+Set-ADUser test.hrjoiner01 -Title "HR Assistant"
+
+Set-ADUser test.hrjoiner01 `
+-Manager "CN=Maria Lopez,OU=HR,OU=1.NB_Users,DC=northbridge,DC=local"
+
+Defines identity metadata used for access decisions.
+
+7. Assign Group Membership
+Add-ADGroupMember "GRP_HR" -Members "test.hrjoiner01"
+Add-ADGroupMember "GRP_StandardUsers" -Members "test.hrjoiner01"
+
+Grants access through RBAC groups.
+
+8. Validate User
+Get-ADUser test.hrjoiner01 `
+-Properties Enabled,Department,Title |
+Select Name,Enabled,Department,Title
+
+Confirms the user is correctly configured.
+
+MOVER — ROLE CHANGE
+9. Capture Current State
+Get-ADUser test.hrjoiner01 `
+-Properties Department,Title |
+Select Name,Department,Title
+
+Get-ADPrincipalGroupMembership test.hrjoiner01 |
+Select Name
+
+Establishes a baseline before changes.
+
+10. Update Attributes
+Set-ADUser test.hrjoiner01 -Department "Finance"
+Set-ADUser test.hrjoiner01 -Title "Finance Analyst"
+
+$manager = Get-ADUser dortega
+Set-ADUser test.hrjoiner01 -Manager $manager.DistinguishedName
+
+Updates identity to reflect the new role.
+
+11. Update Group Membership
+Remove-ADGroupMember "GRP_HR" `
+-Members "test.hrjoiner01" `
+-Confirm:$false
+
+Add-ADGroupMember "GRP_Finance" `
+-Members "test.hrjoiner01"
+
+Removes old access and assigns new permissions.
+
+12. Validate Role Change
+Get-ADUser test.hrjoiner01 `
+-Properties Department,Title |
+Select Name,Department,Title
+
+Get-ADPrincipalGroupMembership test.hrjoiner01 |
+Select Name
+
+Ensures attributes and access match the new role.
+
+LEAVER — OFFBOARDING
+13. Capture Before State
+Get-ADUser test.hrjoiner01 `
+-Properties Enabled |
+Select Name,Enabled
+
+Confirms the account is active before offboarding.
+
+14. Disable Account
+Disable-ADAccount -Identity test.hrjoiner01
+
+Immediately blocks user access.
+
+15. Remove Access
+Remove-ADGroupMember "GRP_Finance" `
+-Members "test.hrjoiner01" `
+-Confirm:$false
+
+Remove-ADGroupMember "GRP_StandardUsers" `
+-Members "test.hrjoiner01" `
+-Confirm:$false
+
+Ensures no permissions remain.
+
+16. Move to DisabledUsers OU
+Move-ADObject `
+-Identity (Get-ADUser test.hrjoiner01).DistinguishedName `
+-TargetPath "OU=DisabledUsers,OU=1.NB_Users,DC=northbridge,DC=local"
+
+Separates inactive accounts from active users.
+
+17. Validate Offboarding
+Get-ADUser test.hrjoiner01 |
+Select Name,Enabled,DistinguishedName
+
+Confirms the account is disabled and relocated.
+
+VALIDATION & AUDIT
+18. Validate Manager Structure
+Get-ADUser mlopez `
+-Properties DirectReports |
+Select Name,DirectReports
+
+Verifies reporting relationships.
+
+19. Audit User Creation
+Get-WinEvent `
+-FilterHashtable @{LogName='Security'; Id=4720} `
+-MaxEvents 5
+
+Shows user creation events.
+
+20. Audit User Changes
+Get-WinEvent `
+-FilterHashtable @{LogName='Security'; Id=4738} `
+-MaxEvents 5
+
+Shows modifications to user accounts.
+
+21. Audit Disable Event
+Get-WinEvent `
+-FilterHashtable @{LogName='Security'; Id=4725} `
+-MaxEvents 5
+
+Confirms account disable actions.
+
+22. Automation Readiness
+Get-ADUser -Filter * `
+-SearchBase "OU=1.NB_Users,DC=northbridge,DC=local" `
+-Properties Department,Title,Manager |
+Select SamAccountName,Department,Title,Manager
+
+Ensures all identities are structured consistently for automation.
+
+Final Result
+
+At the end of this implementation:
+
+Users are onboarded with correct attributes and access
+Role changes update identity and permissions consistently
+Offboarding removes access and isolates accounts
+All actions are traceable through audit logs
+The environment is structured for automation and scalability
+
+This reflects how identity lifecycle is handled in real enterprise Active Directory environments.
