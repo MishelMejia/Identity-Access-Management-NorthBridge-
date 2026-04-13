@@ -1,4 +1,4 @@
-# Identity Lifecycle Management — Active Directory (Northbridge Lab)
+# Identity Lifecycle Management — Active Directory-Northbridge
 
 ## Project Overview
 
