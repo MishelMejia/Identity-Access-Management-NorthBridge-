@@ -33,9 +33,8 @@ The diagram below gives a quick visual idea of how the IAM environment is organi
 | **02-Security-Policies/** | GPOs, hardening, and auditing setup |
 | **03-Delegation-Model/** | Delegation for Helpdesk, HR, and Managers |
 | **04-Identity-Lifecycle/** | Onboarding, offboarding, and role change workflows |
-| **05-Automation/** | PowerShell scripts and automated reports |
-| **06-Logs-and-Auditing/** | Audit configuration and sample logs |
-| **07-Documentation/** | SOPs, runbooks, glossary, and diagrams |
+| **05-Logs-and-Auditing/** | Audit configuration and sample logs |
+
 
 ---
 
